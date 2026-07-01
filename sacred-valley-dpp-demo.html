@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sacred Valley Tech — DPP Infrastructure Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700&family=Work+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- Tokens (Sacred Valley Tech brand) ---------- */
+:root{
+  --ink:#010326;        /* near-black navy */
+  --navy:#162840;       /* dark navy */
+  --teal:#153F59;       /* accent surface */
+  --slate:#7790A6;      /* muted slate */
+  --paper:#F2F2F2;      /* light surface */
+  --white:#ffffff;
+  --loop:#3FA67D;       /* the one circular accent — used only in the loop */
+  --loop-soft:#E4F3EC;
+  --line:#dfe3e8;
+  --ink-70:rgba(255,255,255,.70);
+  --ink-50:rgba(255,255,255,.50);
+  --ink-35:rgba(255,255,255,.35);
+  --shadow:0 1px 2px rgba(1,3,38,.06),0 8px 24px rgba(1,3,38,.06);
+  --shadow-lg:0 24px 60px rgba(1,3,38,.18);
+  --r:14px; --r-sm:10px;
+  --disp:"Saira",system-ui,sans-serif;
+  --body:"Work Sans",system-ui,sans-serif;
+  --mono:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--body);font-weight:300;color:var(--ink);background:var(--paper);
+  -webkit-font-smoothing:antialiased;line-height:1.5}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0;letter-spacing:-.01em;line-height:1.08}
+button{font-family:var(--body);cursor:pointer;border:none;background:none}
+:focus-visible{outline:2px solid var(--loop);outline-offset:2px;border-radius:4px}
+.eyebrow{font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--slate)}
+.mono{font-family:var(--mono)}
+
+/* ---------- Top bar ---------- */
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:18px;
+  padding:12px 22px;background:var(--ink);color:#fff;border-bottom:1px solid rgba(255,255,255,.08)}
+.brandmark{display:flex;align-items:center;gap:11px;text-decoration:none;color:#fff}
+.brandmark .logo{width:30px;height:30px;flex:none}
+.brandmark .wm{display:flex;flex-direction:column;line-height:1.05;gap:3px}
+.brandmark .wm b{font-family:var(--disp);font-weight:600;font-size:14.5px;letter-spacing:.01em}
+.brandmark .wm span{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-50);font-family:var(--disp);margin-top:1px}
+.switcher{display:flex;gap:4px;margin:0 auto;background:rgba(255,255,255,.06);
+  padding:4px;border-radius:999px}
+.switcher button{color:var(--ink-70);font-size:13px;font-weight:400;padding:7px 16px;border-radius:999px;
+  display:flex;align-items:center;gap:7px;transition:.18s}
+.switcher button .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.55}
+.switcher button.is-active{background:#fff;color:var(--ink);font-weight:500}
+.switcher button:not(.is-active):hover{color:#fff}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.pill{display:flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.04em;color:var(--ink-70);
+  font-family:var(--disp);text-transform:uppercase}
+.pill .live{width:7px;height:7px;border-radius:50%;background:var(--loop);box-shadow:0 0 0 0 var(--loop);
+  animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(63,166,125,.5)}70%{box-shadow:0 0 0 7px rgba(63,166,125,0)}100%{box-shadow:0 0 0 0 rgba(63,166,125,0)}}
+.lang{display:flex;gap:2px;background:rgba(255,255,255,.06);border-radius:8px;padding:3px}
+.lang button{color:var(--ink-50);font-size:11.5px;font-weight:500;padding:5px 9px;border-radius:6px;
+  font-family:var(--disp);letter-spacing:.04em}
+.lang button.is-active{background:rgba(255,255,255,.92);color:var(--ink)}
+
+/* ---------- Surfaces ---------- */
+.surface{display:none}
+.surface.is-active{display:block;animation:fade .4s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ============ BRAND PLATFORM ============ */
+.app{display:grid;grid-template-columns:232px 1fr;min-height:calc(100vh - 55px)}
+.side{background:var(--ink);color:#fff;padding:22px 14px;display:flex;flex-direction:column;gap:4px}
+.side .seg{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-35);
+  font-family:var(--disp);margin:16px 10px 6px}
+.side .seg:first-child{margin-top:4px}
+.navitem{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--r-sm);
+  color:var(--ink-70);font-size:14px;width:100%;text-align:left;transition:.15s}
+.navitem svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7}
+.navitem:hover{background:rgba(255,255,255,.05);color:#fff}
+.navitem.is-active{background:var(--teal);color:#fff;font-weight:500}
+.side .org{margin-top:auto;padding:12px;border-radius:var(--r-sm);background:rgba(255,255,255,.05);
+  display:flex;align-items:center;gap:10px}
+.side .org .av{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#c8b48f,#8a6f4a);
+  display:grid;place-items:center;font-family:var(--disp);font-weight:600;font-size:13px;color:#fff}
+.side .org b{font-family:var(--disp);font-size:13px;font-weight:600}
+.side .org span{font-size:11px;color:var(--ink-50);display:block}
+
+.main{padding:30px 36px 60px;overflow:auto}
+.panel{display:none}
+.panel.is-active{display:block;animation:fade .35s ease both}
+.page-head{margin-bottom:24px}
+.page-head h1{font-size:27px;margin-bottom:5px}
+.page-head p{color:#5a6573;margin:0;max-width:60ch}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+.kpi.kpi-clickable{cursor:pointer;transition:transform .18s,box-shadow .18s}
+.kpi.kpi-clickable:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(1,3,38,.08)}
+.kpi.kpi-clickable:focus-visible{outline:2px solid var(--loop);outline-offset:2px}
+.kpi .lab{font-size:12px;color:#6b7480;display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.kpi .lab .ic{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:var(--paper)}
+.kpi .lab .ic svg{width:14px;height:14px;stroke:var(--teal);fill:none;stroke-width:1.8}
+.kpi .val{font-family:var(--disp);font-weight:600;font-size:30px;line-height:1}
+.kpi .sub{font-size:11.5px;color:var(--slate);margin-top:6px}
+.kpi .sub.up{color:var(--loop)}
+
+.grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.card h3{font-size:16px;margin-bottom:3px}
+.card .csub{font-size:12px;color:#6b7480;margin-bottom:16px}
+
+/* readiness donut */
+.donut-wrap{display:flex;align-items:center;gap:22px}
+.donut{position:relative;width:132px;height:132px;flex:none}
+.donut .ctr{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.donut .ctr b{font-family:var(--disp);font-weight:600;font-size:30px;display:block;line-height:1}
+.donut .ctr span{font-size:10.5px;color:var(--slate);letter-spacing:.04em}
+.ready-list{display:flex;flex-direction:column;gap:9px;flex:1}
+.ready-row{display:flex;align-items:center;gap:9px;font-size:13px;color:#39424d}
+.ready-row .tick{width:16px;height:16px;border-radius:50%;background:var(--loop-soft);display:grid;place-items:center;flex:none}
+.ready-row .tick svg{width:9px;height:9px;stroke:var(--loop);stroke-width:2.4;fill:none}
+.ready-row.pend .tick{background:#fdf2dd}
+.ready-row.pend .tick svg{stroke:#c8922a}
+
+/* revenue streams bars */
+.streams{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.stream{display:grid;grid-template-columns:88px 1fr auto;align-items:center;gap:12px;font-size:13px}
+.stream .nm{color:#39424d;display:flex;align-items:center;gap:7px}
+.stream .nm i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.bar{height:9px;background:var(--paper);border-radius:6px;overflow:hidden}
+.bar>span{display:block;height:100%;border-radius:6px}
+.stream .amt{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+
+/* activity */
+.activity{display:flex;flex-direction:column}
+.act{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:13px}
+.act:first-child{border-top:none}
+.act .ad{width:30px;height:30px;border-radius:8px;flex:none;display:grid;place-items:center;background:var(--paper)}
+.act .ad svg{width:15px;height:15px;stroke:var(--teal);fill:none;stroke-width:1.7}
+.act .ad.loop{background:var(--loop-soft)} .act .ad.loop svg{stroke:var(--loop)}
+.act b{font-weight:500;font-family:var(--body)}
+.act .at{color:var(--slate);font-size:11.5px}
+.act .right{margin-left:auto;text-align:right}
+
+/* Catalogue */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:18px}
+.product{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;position:relative;
+  box-shadow:var(--shadow);transition:.2s;display:flex;flex-direction:column}
+.product:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.product .ph{height:240px;position:relative;display:grid;place-items:center;overflow:hidden;background:transparent}
+.product .ph svg.gl{display:none}
+.product .ph img.gl{display:block;width:100%;height:100%;object-fit:cover;object-position:center;position:absolute;inset:0;z-index:1}
+.product .ph .weave{display:none}
+.badge-status{position:absolute;top:10px;left:10px;z-index:2;font-size:10.5px;font-family:var(--disp);
+  letter-spacing:.04em;padding:4px 9px;border-radius:999px;display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.92);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.badge-status .d{width:6px;height:6px;border-radius:50%;background:var(--loop)}
+.badge-status.draft .d{background:var(--slate)}
+.product .pb{padding:14px 15px 16px;display:flex;flex-direction:column;gap:3px;flex:1}
+.product .cat{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-family:var(--disp)}
+.product .nm{font-family:var(--disp);font-weight:600;font-size:15.5px}
+.product .sku{font-family:var(--mono);font-size:11px;color:#94a0ad}
+.product .row{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11.5px;color:#6b7480}
+.product .row .fp{display:flex;align-items:center;gap:5px}
+.product .row svg{width:12px;height:12px;stroke:var(--teal);fill:none;stroke-width:1.7}
+.product .view{margin-top:13px;display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--ink);color:#fff;border-radius:9px;padding:10px;font-size:13px;font-weight:400;transition:.16s}
+.product .view:hover{background:var(--teal)}
+.product .view svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:1.6}
+
+/* Create flow */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.step{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;position:relative;box-shadow:var(--shadow)}
+.step .n{font-family:var(--disp);font-weight:600;font-size:13px;color:#fff;background:var(--teal);
+  width:25px;height:25px;border-radius:50%;display:grid;place-items:center;margin-bottom:13px}
+.step h4{font-size:14.5px;margin-bottom:5px}
+.step p{font-size:12.5px;color:#6b7480;margin:0}
+.step .arrow{position:absolute;right:-11px;top:50%;transform:translateY(-50%);z-index:2;color:var(--slate)}
+.step:last-child .arrow{display:none}
+.gen-box{background:var(--ink);border-radius:var(--r);padding:26px;color:#fff;display:flex;align-items:center;
+  gap:24px;position:relative;overflow:hidden}
+.gen-box .weave{position:absolute;right:-30px;bottom:-40px;width:240px;opacity:.10}
+.gen-box .gtxt{flex:1;position:relative;z-index:1}
+.gen-box h3{font-size:19px;margin-bottom:6px}
+.gen-box p{color:var(--ink-70);font-size:13.5px;margin:0;max-width:46ch}
+.btn{display:inline-flex;align-items:center;gap:9px;background:var(--loop);color:#04231a;font-weight:600;
+  font-family:var(--disp);font-size:14px;padding:13px 22px;border-radius:10px;transition:.16s;position:relative;z-index:1}
+.btn:hover{filter:brightness(1.06)}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.btn.ghost{background:rgba(255,255,255,.1);color:#fff}
+.gen-prog{height:6px;background:rgba(255,255,255,.12);border-radius:6px;overflow:hidden;margin-top:14px;display:none}
+.gen-prog.show{display:block}
+.gen-prog>span{display:block;height:100%;width:0;background:var(--loop);border-radius:6px;transition:width .25s linear}
+.gen-log{font-family:var(--mono);font-size:11.5px;color:var(--loop);margin-top:10px;min-height:16px}
+
+/* Revenue table */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.tbl th{text-align:left;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--slate);padding:0 10px 11px;border-bottom:1px solid var(--line)}
+.tbl td{padding:13px 10px;border-bottom:1px solid var(--line);color:#39424d}
+.tbl td.m{font-family:var(--mono);font-size:12px}
+.tag{font-size:11px;font-family:var(--disp);padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px}
+.tag.resell{background:#eaf1f7;color:var(--teal)}
+.tag.repair{background:#fdf2dd;color:#a9791f}
+.tag.recycle{background:var(--loop-soft);color:#1f7a55}
+.share-note{display:flex;gap:13px;align-items:flex-start;background:var(--loop-soft);border-radius:var(--r);
+  padding:16px 18px;margin-bottom:20px}
+.share-note svg{width:20px;height:20px;stroke:var(--loop);fill:none;stroke-width:1.8;flex:none;margin-top:1px}
+.share-note p{margin:0;font-size:13.5px;color:#235e44}
+.share-note b{font-family:var(--disp)}
+
+/* settings */
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:15px 0;border-bottom:1px solid var(--line);font-size:14px}
+.set-row:last-child{border:none}
+.set-row .k{color:#39424d}.set-row .v{font-family:var(--mono);font-size:12.5px;color:var(--slate)}
+
+/* ============ PHONE STAGE (consumer + sally) ============ */
+.stage{min-height:calc(100vh - 55px);background:
+  radial-gradient(900px 500px at 80% -5%,rgba(21,63,89,.55),transparent 60%),var(--ink);
+  display:flex;align-items:flex-start;justify-content:center;padding:42px 20px 60px;position:relative;overflow:hidden}
+.stage .weave-bg{position:absolute;right:-90px;top:40px;width:520px;opacity:.05;pointer-events:none}
+.stage-intro{position:absolute;left:max(28px,4vw);top:70px;max-width:300px;color:#fff;z-index:1}
+.stage-intro .eyebrow{color:var(--slate)}
+.stage-intro h2{font-size:26px;margin:10px 0 12px;color:#fff;line-height:1.12}
+.stage-intro p{color:var(--ink-70);font-size:14px;font-weight:300}
+.stage-intro .scan-hint{display:flex;align-items:center;gap:10px;margin-top:18px;font-size:12.5px;color:var(--ink-50)}
+.stage-intro .scan-hint svg{width:16px;height:16px;stroke:var(--slate);fill:none;stroke-width:1.7}
+
+.phone{width:392px;max-width:100%;background:linear-gradient(145deg,#111427,#060816);border-radius:46px;padding:12px;
+  box-shadow:0 24px 60px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08),0 0 0 1px rgba(255,255,255,.08);
+  position:relative;z-index:2;flex:none}
+.phone::before{content:'';position:absolute;inset:8px;border:1px solid rgba(255,255,255,.08);border-radius:38px;pointer-events:none}
+.phone .screen{background:#fff;border-radius:34px;overflow:hidden;height:760px;position:relative;display:flex;flex-direction:column;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+.phone .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:132px;height:28px;
+  background:linear-gradient(180deg,#0c1122,#060816);border-radius:0 0 18px 18px;z-index:30;
+  box-shadow:inset 0 -2px 4px rgba(255,255,255,.04)}
+.phone .notch::before{content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);width:54px;height:5px;border-radius:999px;background:rgba(255,255,255,.16)}
+.scrollable{overflow-y:auto;flex:1;scrollbar-width:none}
+.scrollable::-webkit-scrollbar{display:none}
+
+/* passport */
+.pp-hero{background:linear-gradient(160deg,#c8b48f 0%,#9c7f54 55%,#6f5836 100%);padding:46px 22px 22px;color:#fff;position:relative;height:240px;overflow:hidden}
+.pp-hero.tee{background:linear-gradient(160deg,#9fb3c4,#5f7385)}
+.pp-hero.jacket{background:linear-gradient(160deg,#3f5a6e,#1d2f3e)}
+.pp-hero.beanie{background:linear-gradient(160deg,#b4685a,#7a3f35)}
+.pp-hero.tote{background:linear-gradient(160deg,#8a9277,#5c6347)}
+.pp-hero .weave{position:absolute;right:-20px;top:30px;width:170px;opacity:.18;z-index:0}
+.pp-hero .hero-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.pp-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.3) 45%,rgba(0,0,0,.18) 100%);z-index:0}
+.pp-hero > *:not(.hero-image):not(.weave){position:relative;z-index:1}
+.pp-verified{display:inline-flex;align-items:center;gap:7px;background:rgba(0,0,0,.28);
+  backdrop-filter:blur(6px);padding:6px 11px;border-radius:999px;font-size:11px;font-family:var(--disp);
+  letter-spacing:.03em;margin-bottom:16px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.pp-verified svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2}
+.pp-hero .brand{font-family:var(--disp);font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.pp-hero h1{font-size:27px;margin:4px 0 3px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.pp-hero .pcat{font-size:13px;opacity:1;font-weight:500;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.pp-hero .gl{position:absolute;right:18px;bottom:14px;width:84px;height:84px;stroke:rgba(255,255,255,.6);fill:none;stroke-width:1.2}
+
+.pp-quick{display:flex;gap:0;background:var(--ink);color:#fff}
+.pp-quick .q{flex:1;padding:13px 8px;text-align:center;border-right:1px solid rgba(255,255,255,.08)}
+.pp-quick .q:last-child{border:none}
+.pp-quick .q b{font-family:var(--disp);font-size:18px;display:block}
+.pp-quick .q span{font-size:9.5px;color:var(--ink-50);letter-spacing:.04em;text-transform:uppercase;font-family:var(--disp)}
+.pp-quick .q b small{font-size:10px;font-weight:400;color:var(--ink-50)}
+
+.pp-body{padding:6px 20px 20px}
+.pp-sec{padding:20px 0;border-bottom:1px solid var(--line)}
+.pp-sec:last-of-type{border-bottom:none}
+.pp-sec h3{font-size:15px;margin:3px 0 14px;display:flex;align-items:center;gap:9px}
+.pp-sec h3 svg{width:16px;height:16px;stroke:var(--teal);fill:none;stroke-width:1.8}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:7px 0;font-size:13px}
+.kv .k{color:#6b7480;flex:none}
+.kv .v{text-align:right;color:var(--ink)}
+.kv .v.m{font-family:var(--mono);font-size:11.5px}
+.comp{display:flex;flex-direction:column;gap:10px}
+.comp-row .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.comp-row .top b{font-weight:500}
+.comp-row .top span{color:var(--slate);font-family:var(--mono);font-size:12px}
+.comp-bar{height:7px;border-radius:6px;background:var(--paper);overflow:hidden}
+.comp-bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--slate));border-radius:6px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+.chip{font-size:11.5px;font-family:var(--disp);padding:5px 11px;border-radius:999px;background:var(--paper);color:var(--teal);
+  display:inline-flex;align-items:center;gap:6px}
+.chip svg{width:11px;height:11px;stroke:var(--teal);fill:none;stroke-width:2}
+.chip.ok{background:var(--loop-soft);color:#1f7a55}.chip.ok svg{stroke:var(--loop)}
+
+/* scores */
+.scores{display:flex;gap:10px}
+.score{flex:1;text-align:center;background:var(--paper);border-radius:var(--r-sm);padding:13px 6px}
+.score .ring{width:48px;height:48px;margin:0 auto 8px;position:relative}
+.score .ring b{position:absolute;inset:0;display:grid;place-content:center;font-family:var(--disp);font-weight:600;font-size:14px}
+.score .lab{font-size:10.5px;color:#6b7480;line-height:1.25}
+
+/* journey */
+.journey{position:relative;padding-left:6px}
+.jstep{display:flex;gap:13px;padding-bottom:18px;position:relative}
+.jstep:last-child{padding-bottom:0}
+.jstep::before{content:"";position:absolute;left:7px;top:18px;bottom:-4px;width:2px;background:var(--line)}
+.jstep:last-child::before{display:none}
+.jstep .jd{width:16px;height:16px;border-radius:50%;border:3px solid var(--teal);background:#fff;flex:none;z-index:1;margin-top:1px}
+.jstep.future .jd{border-color:var(--slate);border-style:dashed}
+.jstep.loop .jd{border-color:var(--loop)}
+.jstep .jt b{font-size:13.5px;display:block;font-weight:500}
+.jstep .jt span{font-size:11.5px;color:var(--slate)}
+.jstep .jt .dt{font-family:var(--mono);font-size:10.5px;color:#94a0ad}
+.jstep.future .jt b{color:var(--slate)}
+
+/* MRZ passport strip */
+.mrz{background:var(--ink);color:#fff;padding:16px 20px}
+.mrz .mrz-lab{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-35);font-family:var(--disp);margin-bottom:8px}
+.mrz pre{font-family:var(--mono);font-size:10.5px;line-height:1.7;color:var(--loop);margin:0;white-space:pre-wrap;word-break:break-all;letter-spacing:.06em}
+
+.pp-cta{padding:18px 20px 20px;background:#fff;border-top:1px solid var(--line);display:flex;flex-direction:column;align-items:stretch;gap:10px}
+.pp-cta .ask{width:100%;min-height:50px;background:var(--loop);color:#04231a;border-radius:14px;padding:13px 16px;font-family:var(--disp);
+  font-weight:600;font-size:14px;line-height:1.2;display:flex;align-items:center;justify-content:center;gap:8px;transition:.16s;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.pp-cta .ask:hover{filter:brightness(1.05)}
+.pp-cta .ask .ask-text{display:inline-flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;text-align:center}
+.pp-cta .ask .ask-link{font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.pp-cta .ask svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex:none}
+.pp-cta .note{text-align:center;font-size:11.5px;color:var(--slate);margin-top:0;display:flex;align-items:center;justify-content:center;gap:7px;line-height:1.35;flex-wrap:wrap}
+.pp-cta .note svg{width:13px;height:13px;stroke:var(--slate);fill:none;stroke-width:1.8;flex:none}
+
+/* ---------- Sally ---------- */
+.sally-top{background:var(--ink);color:#fff;padding:48px 20px 24px;position:relative}
+.sally-top .back{position:absolute;left:16px;top:46px;color:var(--ink-70);display:flex;align-items:center;gap:6px;font-size:12.5px;padding:6px 0}
+.sally-top .back svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.sally-id{display:flex;align-items:center;gap:12px;margin-top:18px;padding-top:4px}
+.sally-av{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--loop),#2c7a59);
+  display:flex;align-items:center;justify-content:center;flex:none;color:#fff;font-family:var(--disp);font-size:18px;font-weight:700;letter-spacing:.04em}
+.sally-av svg{width:24px;height:24px}
+.sally-id b{font-family:var(--disp);font-size:19px;display:block}
+.sally-id span{font-size:11.5px;color:var(--loop);letter-spacing:.04em}
+.sally-body{background:#f4f6f8;flex:1;overflow-y:auto;padding:20px 18px 26px;scrollbar-width:none}
+.sally-body::-webkit-scrollbar{display:none}
+.msg{background:#fff;border-radius:4px 16px 16px 16px;padding:14px 16px;font-size:13.5px;color:#2a323c;
+  box-shadow:0 1px 3px rgba(1,3,38,.06);max-width:90%;margin-bottom:14px;line-height:1.5}
+.msg b{font-weight:500}
+.assess{display:flex;gap:10px;margin-bottom:16px}
+.assess .a{flex:1;background:#fff;border-radius:12px;padding:12px 12px;box-shadow:0 1px 3px rgba(1,3,38,.06)}
+.assess .a span{font-size:10px;color:#8a96a3;letter-spacing:.04em;text-transform:uppercase;font-family:var(--disp);display:block}
+.assess .a b{font-family:var(--disp);font-size:14px;color:var(--loop);display:flex;align-items:center;gap:5px;margin-top:3px}
+.assess .a b svg{width:13px;height:13px;stroke:var(--loop);fill:none;stroke-width:2.2}
+.act-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(1,3,38,.06);
+  border:1px solid transparent;transition:.16s}
+.act-card.featured{border-color:var(--loop);box-shadow:0 6px 20px rgba(63,166,125,.16)}
+.act-card .ah{display:flex;align-items:flex-start;gap:11px;margin-bottom:9px}
+.act-card .best{align-self:flex-start;margin-top:2px}
+.act-card .ai{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none}
+.act-card .ai svg{width:19px;height:19px;fill:none;stroke-width:1.8}
+.ai.resell{background:#eaf1f7}.ai.resell svg{stroke:var(--teal)}
+.ai.repair{background:#fdf2dd}.ai.repair svg{stroke:#b5821f}
+.ai.recycle{background:var(--loop-soft)}.ai.recycle svg{stroke:var(--loop)}
+.act-card .at-wrap{flex:1}
+.act-card .at-wrap b{font-family:var(--disp);font-size:15px;display:block}
+.act-card .at-wrap span{font-size:11.5px;color:#8a96a3}
+.act-card .best{font-size:9.5px;font-family:var(--disp);letter-spacing:.06em;text-transform:uppercase;
+  background:var(--loop);color:#04231a;padding:3px 8px;border-radius:999px}
+.act-card p{font-size:12.5px;color:#5a6573;margin:0 0 13px;line-height:1.45}
+.act-card .meta{display:flex;gap:14px;margin-bottom:13px}
+.act-card .meta div{font-size:11px;color:#8a96a3}
+.act-card .meta div b{font-family:var(--mono);font-size:13px;color:var(--ink);display:block}
+.act-card .meta div b.loop{color:var(--loop)}
+.act-card .go{width:100%;border-radius:10px;padding:11px;font-family:var(--disp);font-weight:600;font-size:13.5px;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:.16s}
+.go.p{background:var(--ink);color:#fff}.go.p:hover{background:var(--teal)}
+.go.s{background:#eef1f4;color:var(--ink)}.go.s:hover{background:#e2e7ec}
+.go svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.brand-share{display:flex;gap:11px;background:#fff;border-radius:14px;padding:14px;margin-top:4px;border:1px dashed var(--loop)}
+.brand-share svg{width:18px;height:18px;stroke:var(--loop);fill:none;stroke-width:1.8;flex:none;margin-top:1px}
+.brand-share p{margin:0;font-size:12.5px;color:#235e44}
+.brand-share b{font-family:var(--disp)}
+.suggest{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.suggest button{background:#fff;border:1px solid var(--line);border-radius:999px;padding:9px 14px;font-size:12.5px;
+  color:var(--teal);transition:.15s}
+.suggest button:hover{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:var(--ink);
+  color:#fff;padding:14px 20px;border-radius:12px;font-size:13.5px;box-shadow:var(--shadow-lg);z-index:200;
+  opacity:0;pointer-events:none;transition:.28s;display:flex;align-items:center;gap:11px;max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast svg{width:18px;height:18px;stroke:var(--loop);fill:none;stroke-width:2;flex:none}
+.toast b{font-family:var(--disp);font-weight:600}
+
+/* responsive */
+@media(max-width:980px){
+  .app{grid-template-columns:1fr}
+  .side{flex-direction:row;flex-wrap:wrap;gap:6px;padding:10px}
+  .side .seg,.side .org{display:none}
+  .navitem{width:auto;padding:8px 12px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .grid2{grid-template-columns:1fr}
+  .steps{grid-template-columns:repeat(2,1fr)}.step .arrow{display:none}
+  .stage-intro{display:none}
+  .main{padding:22px 16px 50px}
+}
+@media(max-width:560px){
+  .switcher{order:3;width:100%;margin:6px 0 0;justify-content:center}
+  .topbar{flex-wrap:wrap}
+  .kpis{grid-template-columns:1fr 1fr}
+  .switcher button{padding:7px 11px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <a class="brandmark" href="#" onclick="return false">
+    <img class="logo" id="topLogo" src="images/logo_sally_monochrome.png" alt="Sally logo" width="30" height="30">
+    <span class="wm"><b>Sacred Valley Tech</b><span data-i18n="brand_tagline">The future of circular fashion</span></span>
+  </a>
+  <nav class="switcher" role="tablist" aria-label="Demo surfaces">
+    <button data-surface="brand" class="is-active"><span class="dot"></span><span data-i18n="nav_brand">Brand platform</span></button>
+    <button data-surface="consumer"><span class="dot"></span><span data-i18n="nav_consumer">Customer passport</span></button>
+    <button data-surface="sally"><span class="dot"></span><span data-i18n="nav_sally">Sally</span></button>
+  </nav>
+  <div class="topbar-right">
+    <span class="pill"><span class="live"></span><span data-i18n="demo_pill">Live demo</span></span>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-lang="en" class="is-active">EN</button>
+      <button data-lang="it">IT</button>
+      <button data-lang="de">DE</button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ SURFACE 1: BRAND PLATFORM ============ -->
+<section class="surface is-active" id="surface-brand">
+  <div class="app">
+    <aside class="side">
+      <div class="seg" data-i18n="side_seg_main">Workspace</div>
+      <button class="navitem is-active" data-panel="overview"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span data-i18n="side_overview">Overview</span></button>
+      <button class="navitem" data-panel="catalogue"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span data-i18n="side_catalogue">Catalogue</span></button>
+      <button class="navitem" data-panel="create"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span data-i18n="side_create">Create passport</span></button>
+      <div class="seg" data-i18n="side_seg_circular">Circular</div>
+      <button class="navitem" data-panel="revenue"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M21 7v5h-5"/></svg><span data-i18n="side_revenue">Sally revenue</span></button>
+      <button class="navitem" data-panel="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 1h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 23h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg><span data-i18n="side_settings">Settings</span></button>
+      <div class="org">
+        <div class="av">M</div>
+        <div><b>MERIDIA Studio</b><span data-i18n="org_plan">Pilot · DPP platform</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- OVERVIEW -->
+      <div class="panel is-active" id="panel-overview">
+        <div class="page-head">
+          <h1 data-i18n="ov_title">Good morning, MERIDIA</h1>
+          <p data-i18n="ov_sub">Your circular fashion programme at a glance — compliance, passports, and the revenue Sally returns to you.</p>
+        </div>
+        <div class="kpis" id="kpis"></div>
+        <div class="grid2">
+          <div class="card">
+            <h3 data-i18n="ov_revenue_t">Revenue returned by Sally</h3>
+            <p class="csub" data-i18n="ov_revenue_s">After-sale value from items kept in the loop, this month.</p>
+            <div class="streams" id="streams"></div>
+          </div>
+          <div class="card">
+            <h3 data-i18n="ov_ready_t">ESPR readiness</h3>
+            <p class="csub" data-i18n="ov_ready_s">Across your active catalogue.</p>
+            <div class="donut-wrap">
+              <div class="donut" id="donut"></div>
+              <div class="ready-list" id="readyList"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3 data-i18n="ov_act_t">Recent activity</h3>
+          <div class="activity" id="activity" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- CATALOGUE -->
+      <div class="panel" id="panel-catalogue">
+        <div class="page-head">
+          <h1 data-i18n="cat_title">Catalogue</h1>
+          <p data-i18n="cat_sub">Every product carries a living passport. Open one to see exactly what your customer sees when they scan it.</p>
+        </div>
+        <div class="cat-grid" id="catGrid"></div>
+      </div>
+
+      <!-- CREATE -->
+      <div class="panel" id="panel-create">
+        <div class="page-head">
+          <h1 data-i18n="cr_title">Create a passport</h1>
+          <p data-i18n="cr_sub">From your existing catalogue to a compliant, QR-linked passport — in minutes, not months.</p>
+        </div>
+        <div class="steps">
+          <div class="step"><div class="n">1</div><h4 data-i18n="cr_s1t">Import catalogue</h4><p data-i18n="cr_s1d">Bulk import from your ERP or e-commerce. No re-keying.</p><span class="arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+          <div class="step"><div class="n">2</div><h4 data-i18n="cr_s2t">Auto footprint</h4><p data-i18n="cr_s2d">ESPR-aligned environmental footprint, calculated for you.</p><span class="arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+          <div class="step"><div class="n">3</div><h4 data-i18n="cr_s3t">Generate DPP + QR</h4><p data-i18n="cr_s3d">A compliant passport and label-ready QR code per item.</p><span class="arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+          <div class="step"><div class="n">4</div><h4 data-i18n="cr_s4t">Manage collections</h4><p data-i18n="cr_s4d">Maintain passports across collections, one by one or in bulk.</p></div>
+        </div>
+        <div class="gen-box">
+          <span class="weave" id="genWeave"></span>
+          <div class="gtxt">
+            <h3 data-i18n="cr_gen_t">Generate this season's passports</h3>
+            <p data-i18n="cr_gen_s">42 products from your Autumn/Winter import are ready. We'll calculate footprints and issue every passport and QR code.</p>
+            <div class="gen-prog" id="genProg"><span></span></div>
+            <div class="gen-log mono" id="genLog"></div>
+          </div>
+          <button class="btn" id="genBtn"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg><span data-i18n="cr_gen_btn">Generate 42 passports</span></button>
+        </div>
+      </div>
+
+      <!-- REVENUE -->
+      <div class="panel" id="panel-revenue">
+        <div class="page-head">
+          <h1 data-i18n="rv_title">Sally revenue</h1>
+          <p data-i18n="rv_sub">Compliance is the floor. Every repair, resale and recycle that Sally facilitates returns a share to you.</p>
+        </div>
+        <div class="share-note">
+          <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M21 4v5h-5"/></svg>
+          <p data-i18n="rv_share">You earn a <b>revenue share on every Sally transaction</b> — resale, repair and recycling — turning after-sale activity into an active commercial channel.</p>
+        </div>
+        <div class="kpis" id="rvKpis" style="grid-template-columns:repeat(3,1fr)"></div>
+        <div class="card" style="margin-top:16px">
+          <h3 data-i18n="rv_txn_t">Recent transactions</h3>
+          <table class="tbl" id="txnTbl"></table>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="panel" id="panel-settings">
+        <div class="page-head">
+          <h1 data-i18n="st_title">Settings</h1>
+          <p data-i18n="st_sub">Your pilot configuration. Open standards in, no vendor lock-in.</p>
+        </div>
+        <div class="card" id="setCard"></div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============ SURFACE 2: CONSUMER PASSPORT ============ -->
+<section class="surface" id="surface-consumer">
+  <div class="stage">
+    <span class="weave-bg" id="cWeave"></span>
+    <div class="stage-intro">
+      <div class="eyebrow" data-i18n="cs_eyebrow">In your customer's hand</div>
+      <h2 data-i18n="cs_intro_t">One scan opens the whole story.</h2>
+      <p data-i18n="cs_intro_p">This is what a customer sees after scanning the QR on the care label — a verified, living passport, not a static PDF.</p>
+      <div class="scan-hint"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg><span data-i18n="cs_scan_hint">Scan simulated from the catalogue</span></div>
+    </div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="scrollable" id="ppScroll"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SURFACE 3: SALLY ============ -->
+<section class="surface" id="surface-sally">
+  <div class="stage">
+    <span class="weave-bg" id="sWeave"></span>
+    <div class="stage-intro">
+      <div class="eyebrow" data-i18n="sl_eyebrow">The differentiator</div>
+      <h2 data-i18n="sl_intro_t">Where compliance becomes circular.</h2>
+      <p data-i18n="sl_intro_p">Sally reads the passport, judges the item's condition, and points the owner to the best next step — keeping the piece in the loop and returning value to the brand.</p>
+    </div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="sally-top">
+          <button class="back" id="sallyBack"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></svg><span data-i18n="sl_back">Passport</span></button>
+          <div class="sally-id">
+            <div class="sally-av" id="sallyAv"></div>
+            <div><b>Sally</b><span data-i18n="sl_role">Circular assistant</span></div>
+          </div>
+        </div>
+        <div class="sally-body" id="sallyBody"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span id="toastMsg"></span></div>
+
+<script>
+/* ============================================================
+   Sacred Valley Tech — DPP infrastructure demo (mockup)
+   Single-file, offline-friendly, trilingual EN/IT/DE.
+   ============================================================ */
+
+/* ---------- reusable SVG ---------- */
+function wovenLogo(stroke){
+  return `<img src="images/logo_sally_monochrome.png" alt="Sally logo" width="100%" height="100%">`;
+}
+function weaveBlock(){
+  return `<img src="images/logo_sally_monochrome.png" alt="Sally logo" width="100%" height="100%">`;
+}
+const GLYPH = {
+  sweater:`<path d="M8 14l8-6c1.5 2 4.5 2 6 0l8 6-4 5-2-1.5V40H14V17.5L12 19z"/>`,
+  tee:`<path d="M9 13l7-5c1.5 1.8 4.5 1.8 6 0l7 5-3.5 5L20 16.5V40H12V18.5L8.5 18z"/>`,
+  jacket:`<path d="M9 13l7-5 1.5 1.5L19 8l1.5 1.5L22 8l7 5-3.5 5L23 16.5V40h-5V14M19 14v26"/>`,
+  beanie:`<path d="M8 28a12 12 0 0 1 24 0M6 28h28v5a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>`,
+  tote:`<path d="M11 16h18l-2 22H13zM15 16a5 5 0 0 1 10 0"/>`
+};
+function glyph(name,cls){return `<svg class="${cls||''}" viewBox="0 0 40 44">${GLYPH[name]||GLYPH.tee}</svg>`;}
+function qrSVG(size){
+  // decorative QR-like grid with finder patterns + centre weave (not scannable)
+  const n=21, cell=(size||120)/n; let r='';
+  const seed=[0,2,3,5,8,9,11,13,14,16,18,20];
+  for(let y=0;y<n;y++){for(let x=0;x<n;x++){
+    const finder=(x<7&&y<7)||(x>13&&y<7)||(x<7&&y>13);
+    if(finder)continue;
+    const centre=(x>7&&x<13&&y>7&&y<13);if(centre)continue;
+    if(((x*3+y*5)%7<3)&&!(seed.includes(x)&&seed.includes(y)===false)){
+      if((x+y)%2===0||((x*y)%5===0)) r+=`<rect x="${x*cell}" y="${y*cell}" width="${cell}" height="${cell}"/>`;
+    }
+  }}
+  function fp(cx,cy){return `<rect x="${cx*cell}" y="${cy*cell}" width="${cell*7}" height="${cell*7}" fill="none" stroke="#010326" stroke-width="${cell}"/><rect x="${(cx+2)*cell}" y="${(cy+2)*cell}" width="${cell*3}" height="${cell*3}"/>`;}
+  return `<svg viewBox="0 0 ${size||120} ${size||120}" width="${size||120}" height="${size||120}"><rect width="100%" height="100%" fill="#fff"/><g fill="#010326">${r}${fp(0,0)}${fp(14,0)}${fp(0,14)}</g>
+   <g transform="translate(${size*0.38},${size*0.38}) scale(${size*0.0052})">${wovenLogo('#153F59')}</g></svg>`;
+}
+function ringSVG(pct,color){
+  const r=20,c=2*Math.PI*r,off=c*(1-pct/100);
+  return `<svg viewBox="0 0 48 48" width="48" height="48"><circle cx="24" cy="24" r="${r}" fill="none" stroke="#e7eaee" stroke-width="4"/>
+    <circle cx="24" cy="24" r="${r}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 24 24)"/></svg>`;
+}
+
+/* ---------- i18n ---------- */
+const T={
+ en:{
+  brand_tagline:"The future of circular fashion",
+  nav_brand:"Brand platform",nav_consumer:"Customer passport",nav_sally:"Sally",demo_pill:"Live demo",
+  side_seg_main:"Workspace",side_overview:"Overview",side_catalogue:"Catalogue",side_create:"Create passport",
+  side_seg_circular:"Circular",side_revenue:"Sally revenue",side_settings:"Settings",org_plan:"Pilot · DPP platform",
+  ov_title:"Good morning, MERIDIA",ov_sub:"Your circular fashion programme at a glance — compliance, passports, and the revenue Sally returns to you.",
+  ov_revenue_t:"Revenue returned by Sally",ov_revenue_s:"After-sale value from items kept in the loop, this month.",
+  ov_ready_t:"ESPR readiness",ov_ready_s:"Across your active catalogue.",
+  ov_act_t:"Recent activity",
+  kpi_passports:"Passports published",kpi_passports_sub:"of 248 active SKUs",
+  kpi_ready:"ESPR readiness",kpi_ready_sub:"data complete & verified",
+  kpi_circ:"Items kept in circulation",kpi_circ_sub:"resold, repaired or recycled",
+  kpi_rev:"Sally revenue · this month",kpi_rev_sub:"+18% vs last month",
+  st_resell:"Resale",st_repair:"Repair",st_recycle:"Recycle",
+  ready_done:"Materials & composition",ready_done2:"Footprint calculated",ready_done3:"QR codes issued",ready_pend:"Supplier facility IDs",
+  ready_done_n:"completed",ready_pend_n:"3 suppliers pending",
+  act_resell:"Resold via Sally",act_resell_d:"Andean Alpaca Crew · Milan",
+  act_passport:"24 passports published",act_passport_d:"Spring/Summer drop",
+  act_repair:"Repair booked",act_repair_d:"Recycled Shell Jacket · Berlin",
+  act_recycle:"Returned for recycling",act_recycle_d:"Organic Cotton Tee · fibre recovered",
+  cat_title:"Catalogue",cat_sub:"Every product carries a living passport. Open one to see exactly what your customer sees when they scan it.",
+  view_passport:"View passport",
+  cr_title:"Create a passport",cr_sub:"From your existing catalogue to a compliant, QR-linked passport — in minutes, not months.",
+  cr_s1t:"Import catalogue",cr_s1d:"Bulk import from your ERP or e-commerce. No re-keying.",
+  cr_s2t:"Auto footprint",cr_s2d:"ESPR-aligned environmental footprint, calculated for you.",
+  cr_s3t:"Generate DPP + QR",cr_s3d:"A compliant passport and label-ready QR code per item.",
+  cr_s4t:"Manage collections",cr_s4d:"Maintain passports across collections, one by one or in bulk.",
+  cr_gen_t:"Generate this season's passports",cr_gen_s:"42 products from your Autumn/Winter import are ready. We'll calculate footprints and issue every passport and QR code.",
+  cr_gen_btn:"Generate 42 passports",
+  rv_title:"Sally revenue",rv_sub:"Compliance is the floor. Every repair, resale and recycle that Sally facilitates returns a share to you.",
+  rv_share:"You earn a revenue share on every Sally transaction — resale, repair and recycling — turning after-sale activity into an active commercial channel.",
+  rv_txn_t:"Recent transactions",
+  rv_k1:"Transactions · this month",rv_k1s:"across all streams",rv_k2:"Your revenue share",rv_k2s:"returned this month",rv_k3:"Avg. items kept in loop",rv_k3s:"per 100 sold",
+  th_date:"Date",th_item:"Item",th_type:"Type",th_value:"Value",th_share:"Your share",
+  st_title:"Settings",st_sub:"Your pilot configuration. Open standards in, no vendor lock-in.",
+  set_plan:"Plan",set_plan_v:"Pilot — monthly subscription",set_std:"Data standard",set_export:"Data export",set_export_v:"Full export, anytime",set_carrier:"Data carrier",set_carrier_v:"QR · NFC ready",set_api:"ERP / e-commerce",set_api_v:"Connected via bulk import",
+  /* consumer */
+  cs_eyebrow:"In your customer's hand",cs_intro_t:"One scan opens the whole story.",
+  cs_intro_p:"This is what a customer sees after scanning the QR on the care label — a verified, living passport, not a static PDF.",
+  cs_scan_hint:"Scan simulated from the catalogue",
+  pp_verified:"Verified digital product passport",
+  q_origin:"Origin",q_recycled:"Recycled",q_life:"Lifetime",q_co2:"Footprint",
+  pp_materials:"Materials & composition",pp_origin:"Origin & journey",pp_care:"Care & repair",
+  pp_dura:"Durability & circularity",pp_foot:"Footprint",pp_life:"Lifecycle",pp_comp:"Compliance & identification",
+  f_recycled:"Recycled content",f_substances:"Substances of concern",subst_none:"None declared",
+  f_madein:"Assembled in",f_fibre:"Fibre origin",f_facility:"Facility",f_manuf:"Manufacturer",
+  f_dura:"Durability",f_repair:"Repairability",f_recyc:"Recyclability",f_lifetime:"Expected lifetime",f_years:"years",
+  f_co2:"Carbon footprint",f_water:"Water use",f_warranty:"Warranty",f_certs:"Certifications",
+  f_gtin:"GTIN",f_model:"Model ID",f_batch:"Batch ID",f_hs:"HS code",f_espr:"ESPR category",f_conf:"Conformity",conf_self:"Self-declaration of conformity",
+  care_cold:"Wash cold, 30°C",care_notumble:"Do not tumble dry",care_flat:"Reshape, dry flat",care_repair:"Repair, don't replace",care_nobleach:"Do not bleach",
+  cta_sally:"What's next for this piece?",cta_sally_b:"Ask Sally",
+  living_note:"This passport updates as the piece is repaired, resold or recycled.",
+  mrz_lab:"Machine-readable passport zone",
+  /* sally */
+  sl_eyebrow:"The differentiator",sl_intro_t:"Where compliance becomes circular.",
+  sl_intro_p:"Sally reads the passport, judges the item's condition, and points the owner to the best next step — keeping the piece in the loop and returning value to the brand.",
+  sl_back:"Passport",sl_role:"Circular assistant",
+  sl_greet:"I've checked your <b>{name}</b> by MERIDIA. Good news — it's in excellent condition and very resellable. Here's the smartest next step.",
+  sl_cond:"Condition",sl_cond_v:"Excellent",sl_resell_pot:"Resale potential",sl_resell_v:"High",
+  a_resell_t:"Resell it",a_resell_d:"Strong demand for this style. List it in two taps — MERIDIA verifies it's authentic via the passport.",
+  a_resell_go:"List for resale",a_best:"Best step",
+  a_repair_t:"Repair it",a_repair_d:"A small fix can add years. Book a vetted repair partner near you.",a_repair_go:"Find a repair partner",
+  a_recycle_t:"Recycle it",a_recycle_d:"At true end-of-life, mail it back for fibre recovery — free, and it lowers MERIDIA's EPR costs.",a_recycle_go:"Recycle responsibly",
+  m_value:"Est. resale value",m_share:"MERIDIA earns",m_cost:"From",m_time:"Turnaround",m_recover:"Fibre recovered",m_credit:"EPR credit",
+  brand_share:"Every action keeps this piece in the loop — and a <b>share returns to MERIDIA</b>. Circularity that pays.",
+  sg_q1:"Is it really worth reselling?",sg_q2:"How do I recycle it?",sg_q3:"What's it made of?",
+  sg_a1:"Yes — this style resells at about 60% of retail and demand is high right now. You'd typically sell within a week.",
+  sg_a2:"Print a free prepaid label, drop it at any partner point, and the fibres are recovered into new yarn. MERIDIA gets an EPR credit for it.",
+  sg_a3:"70% Baby Alpaca and 30% RWS Merino — no substances of concern, and fully traceable from Peru to Portugal. It's all in the passport.",
+  /* toasts */
+  toast_resell:"Listed for resale · MERIDIA earns 8%",
+  toast_repair:"Repair partner found nearby",
+  toast_recycle:"Recycling label sent · EPR credit logged",
+  toast_gen:"42 passports & QR codes issued in 3m 48s",
+  toast_view:"Passport opened — this is your customer's view",
+ },
+ it:{
+  brand_tagline:"Il futuro della moda circolare",
+  nav_brand:"Piattaforma brand",nav_consumer:"Passaporto cliente",nav_sally:"Sally",demo_pill:"Demo live",
+  side_seg_main:"Area di lavoro",side_overview:"Panoramica",side_catalogue:"Catalogo",side_create:"Crea passaporto",
+  side_seg_circular:"Circolare",side_revenue:"Ricavi Sally",side_settings:"Impostazioni",org_plan:"Pilota · piattaforma DPP",
+  ov_title:"Buongiorno, MERIDIA",ov_sub:"Il tuo programma di moda circolare in sintesi — conformità, passaporti e i ricavi che Sally ti restituisce.",
+  ov_revenue_t:"Ricavi restituiti da Sally",ov_revenue_s:"Valore post-vendita dai capi rimasti nel ciclo, questo mese.",
+  ov_ready_t:"Prontezza ESPR",ov_ready_s:"Sul tuo catalogo attivo.",
+  ov_act_t:"Attività recente",
+  kpi_passports:"Passaporti pubblicati",kpi_passports_sub:"su 248 SKU attivi",
+  kpi_ready:"Prontezza ESPR",kpi_ready_sub:"dati completi e verificati",
+  kpi_circ:"Capi rimasti in circolo",kpi_circ_sub:"rivenduti, riparati o riciclati",
+  kpi_rev:"Ricavi Sally · questo mese",kpi_rev_sub:"+18% sul mese scorso",
+  st_resell:"Rivendita",st_repair:"Riparazione",st_recycle:"Riciclo",
+  ready_done:"Materiali e composizione",ready_done2:"Footprint calcolato",ready_done3:"QR code emessi",ready_pend:"ID stabilimenti fornitori",
+  ready_done_n:"completato",ready_pend_n:"3 fornitori in attesa",
+  act_resell:"Rivenduto via Sally",act_resell_d:"Maglia Alpaca Andina · Milano",
+  act_passport:"24 passaporti pubblicati",act_passport_d:"Collezione Primavera/Estate",
+  act_repair:"Riparazione prenotata",act_repair_d:"Giacca Shell Riciclata · Berlino",
+  act_recycle:"Reso per riciclo",act_recycle_d:"T-shirt Cotone Bio · fibra recuperata",
+  cat_title:"Catalogo",cat_sub:"Ogni prodotto ha un passaporto vivo. Aprine uno per vedere esattamente cosa vede il cliente quando lo scansiona.",
+  view_passport:"Vedi passaporto",
+  cr_title:"Crea un passaporto",cr_sub:"Dal tuo catalogo a un passaporto conforme e collegato a un QR — in minuti, non mesi.",
+  cr_s1t:"Importa il catalogo",cr_s1d:"Import in blocco da ERP o e-commerce. Nessun reinserimento.",
+  cr_s2t:"Footprint automatico",cr_s2d:"Footprint ambientale allineato all'ESPR, calcolato per te.",
+  cr_s3t:"Genera DPP + QR",cr_s3d:"Un passaporto conforme e un QR pronto per l'etichetta, per ogni capo.",
+  cr_s4t:"Gestisci le collezioni",cr_s4d:"Mantieni i passaporti su tutte le collezioni, singoli o massivi.",
+  cr_gen_t:"Genera i passaporti di stagione",cr_gen_s:"42 prodotti dall'import Autunno/Inverno sono pronti. Calcoliamo i footprint ed emettiamo ogni passaporto e QR code.",
+  cr_gen_btn:"Genera 42 passaporti",
+  rv_title:"Ricavi Sally",rv_sub:"La conformità è il punto di partenza. Ogni riparazione, rivendita e riciclo gestito da Sally ti restituisce una quota.",
+  rv_share:"Guadagni una quota su ogni transazione Sally — rivendita, riparazione e riciclo — trasformando il post-vendita in un canale commerciale attivo.",
+  rv_txn_t:"Transazioni recenti",
+  rv_k1:"Transazioni · questo mese",rv_k1s:"su tutti i flussi",rv_k2:"La tua quota ricavi",rv_k2s:"restituita questo mese",rv_k3:"Capi medi nel ciclo",rv_k3s:"ogni 100 venduti",
+  th_date:"Data",th_item:"Capo",th_type:"Tipo",th_value:"Valore",th_share:"Tua quota",
+  st_title:"Impostazioni",st_sub:"La configurazione del tuo pilota. Standard aperti, nessun vendor lock-in.",
+  set_plan:"Piano",set_plan_v:"Pilota — abbonamento mensile",set_std:"Standard dati",set_export:"Esportazione dati",set_export_v:"Export completo, in ogni momento",set_carrier:"Data carrier",set_carrier_v:"QR · pronto NFC",set_api:"ERP / e-commerce",set_api_v:"Collegato via import in blocco",
+  cs_eyebrow:"Nelle mani del cliente",cs_intro_t:"Una scansione apre tutta la storia.",
+  cs_intro_p:"Ecco cosa vede il cliente dopo aver scansionato il QR sull'etichetta — un passaporto vivo e verificato, non un PDF statico.",
+  cs_scan_hint:"Scansione simulata dal catalogo",
+  pp_verified:"Passaporto digitale verificato",
+  q_origin:"Origine",q_recycled:"Riciclato",q_life:"Durata",q_co2:"Footprint",
+  pp_materials:"Materiali e composizione",pp_origin:"Origine e percorso",pp_care:"Cura e riparazione",
+  pp_dura:"Durabilità e circolarità",pp_foot:"Impronta ambientale",pp_life:"Ciclo di vita",pp_comp:"Conformità e identificazione",
+  f_recycled:"Contenuto riciclato",f_substances:"Sostanze pericolose",subst_none:"Nessuna dichiarata",
+  f_madein:"Assemblato in",f_fibre:"Origine della fibra",f_facility:"Stabilimento",f_manuf:"Produttore",
+  f_dura:"Durabilità",f_repair:"Riparabilità",f_recyc:"Riciclabilità",f_lifetime:"Durata prevista",f_years:"anni",
+  f_co2:"Impronta di carbonio",f_water:"Consumo d'acqua",f_warranty:"Garanzia",f_certs:"Certificazioni",
+  f_gtin:"GTIN",f_model:"ID modello",f_batch:"ID lotto",f_hs:"Codice HS",f_espr:"Categoria ESPR",f_conf:"Conformità",conf_self:"Autodichiarazione di conformità",
+  care_cold:"Lavaggio a freddo, 30°C",care_notumble:"Non asciugare in asciugatrice",care_flat:"Rimetti in forma, asciuga in piano",care_repair:"Ripara, non sostituire",care_nobleach:"Non candeggiare",
+  cta_sally:"Qual è il prossimo passo per questo capo?",cta_sally_b:"Chiedi a Sally",
+  living_note:"Questo passaporto si aggiorna quando il capo viene riparato, rivenduto o riciclato.",
+  mrz_lab:"Zona passaporto a lettura ottica",
+  sl_eyebrow:"Il fattore distintivo",sl_intro_t:"Dove la conformità diventa circolare.",
+  sl_intro_p:"Sally legge il passaporto, valuta le condizioni del capo e indica il passo migliore — mantenendo il capo nel ciclo e restituendo valore al brand.",
+  sl_back:"Passaporto",sl_role:"Assistente circolare",
+  sl_greet:"Ho controllato la tua <b>{name}</b> di MERIDIA. Buone notizie: è in condizioni eccellenti e molto rivendibile. Ecco il passo più intelligente.",
+  sl_cond:"Condizione",sl_cond_v:"Eccellente",sl_resell_pot:"Potenziale rivendita",sl_resell_v:"Alto",
+  a_resell_t:"Rivendila",a_resell_d:"Forte domanda per questo modello. Mettila in vendita in due tap — MERIDIA ne verifica l'autenticità tramite il passaporto.",
+  a_resell_go:"Metti in vendita",a_best:"Passo migliore",
+  a_repair_t:"Riparala",a_repair_d:"Una piccola riparazione aggiunge anni. Prenota un partner di fiducia vicino a te.",a_repair_go:"Trova un riparatore",
+  a_recycle_t:"Riciclala",a_recycle_d:"A fine vita reale, rispediscila per il recupero della fibra — gratis, e riduce i costi EPR di MERIDIA.",a_recycle_go:"Ricicla responsabilmente",
+  m_value:"Valore di rivendita stim.",m_share:"MERIDIA guadagna",m_cost:"Da",m_time:"Tempi",m_recover:"Fibra recuperata",m_credit:"Credito EPR",
+  brand_share:"Ogni azione mantiene il capo nel ciclo — e una <b>quota torna a MERIDIA</b>. Circolarità che rende.",
+  sg_q1:"Conviene davvero rivenderla?",sg_q2:"Come la riciclo?",sg_q3:"Di cosa è fatta?",
+  sg_a1:"Sì — questo modello si rivende a circa il 60% del prezzo al dettaglio e la domanda è alta. Di solito si vende in una settimana.",
+  sg_a2:"Stampa un'etichetta prepagata gratuita, lasciala in un punto partner e le fibre vengono recuperate in nuovo filato. MERIDIA riceve un credito EPR.",
+  sg_a3:"70% Baby Alpaca e 30% Merino RWS — nessuna sostanza pericolosa e piena tracciabilità dal Perù al Portogallo. È tutto nel passaporto.",
+  toast_resell:"Messa in vendita · MERIDIA guadagna 8%",
+  toast_repair:"Riparatore trovato nelle vicinanze",
+  toast_recycle:"Etichetta di riciclo inviata · credito EPR registrato",
+  toast_gen:"42 passaporti e QR code emessi in 3m 48s",
+  toast_view:"Passaporto aperto — questa è la vista del tuo cliente",
+ },
+ de:{
+  brand_tagline:"Die Zukunft zirkulärer Mode",
+  nav_brand:"Marken-Plattform",nav_consumer:"Kundenpass",nav_sally:"Sally",demo_pill:"Live-Demo",
+  side_seg_main:"Arbeitsbereich",side_overview:"Übersicht",side_catalogue:"Katalog",side_create:"Pass erstellen",
+  side_seg_circular:"Zirkulär",side_revenue:"Sally-Umsatz",side_settings:"Einstellungen",org_plan:"Pilot · DPP-Plattform",
+  ov_title:"Guten Morgen, MERIDIA",ov_sub:"Ihr Kreislauf-Programm auf einen Blick — Konformität, Pässe und der Umsatz, den Sally an Sie zurückgibt.",
+  ov_revenue_t:"Von Sally zurückgegebener Umsatz",ov_revenue_s:"After-Sale-Wert aus Artikeln im Kreislauf, diesen Monat.",
+  ov_ready_t:"ESPR-Bereitschaft",ov_ready_s:"Über Ihren aktiven Katalog.",
+  ov_act_t:"Letzte Aktivität",
+  kpi_passports:"Veröffentlichte Pässe",kpi_passports_sub:"von 248 aktiven SKUs",
+  kpi_ready:"ESPR-Bereitschaft",kpi_ready_sub:"Daten vollständig & geprüft",
+  kpi_circ:"Artikel im Kreislauf gehalten",kpi_circ_sub:"weiterverkauft, repariert, recycelt",
+  kpi_rev:"Sally-Umsatz · diesen Monat",kpi_rev_sub:"+18% ggü. Vormonat",
+  st_resell:"Wiederverkauf",st_repair:"Reparatur",st_recycle:"Recycling",
+  ready_done:"Materialien & Zusammensetzung",ready_done2:"Footprint berechnet",ready_done3:"QR-Codes ausgegeben",ready_pend:"Lieferanten-Standort-IDs",
+  ready_done_n:"abgeschlossen",ready_pend_n:"3 Lieferanten ausstehend",
+  act_resell:"Über Sally weiterverkauft",act_resell_d:"Andean Alpaca Crew · Mailand",
+  act_passport:"24 Pässe veröffentlicht",act_passport_d:"Frühjahr/Sommer-Drop",
+  act_repair:"Reparatur gebucht",act_repair_d:"Recycled Shell Jacket · Berlin",
+  act_recycle:"Zum Recycling zurückgegeben",act_recycle_d:"Bio-Baumwoll-Shirt · Faser zurückgewonnen",
+  cat_title:"Katalog",cat_sub:"Jedes Produkt trägt einen lebendigen Pass. Öffnen Sie einen, um genau das zu sehen, was Ihre Kundschaft beim Scannen sieht.",
+  view_passport:"Pass ansehen",
+  cr_title:"Einen Pass erstellen",cr_sub:"Vom bestehenden Katalog zum konformen, QR-verknüpften Pass — in Minuten, nicht Monaten.",
+  cr_s1t:"Katalog importieren",cr_s1d:"Massenimport aus ERP oder E-Commerce. Kein Neueingeben.",
+  cr_s2t:"Footprint automatisch",cr_s2d:"ESPR-konformer Umwelt-Footprint, für Sie berechnet.",
+  cr_s3t:"DPP + QR erzeugen",cr_s3d:"Ein konformer Pass und ein etikettenfertiger QR-Code pro Artikel.",
+  cr_s4t:"Kollektionen verwalten",cr_s4d:"Pässe über alle Kollektionen pflegen, einzeln oder im Bulk.",
+  cr_gen_t:"Pässe dieser Saison erzeugen",cr_gen_s:"42 Produkte aus Ihrem Herbst/Winter-Import sind bereit. Wir berechnen Footprints und geben jeden Pass und QR-Code aus.",
+  cr_gen_btn:"42 Pässe erzeugen",
+  rv_title:"Sally-Umsatz",rv_sub:"Konformität ist die Basis. Jede Reparatur, jeder Weiterverkauf und jedes Recycling über Sally gibt Ihnen einen Anteil zurück.",
+  rv_share:"Sie erhalten einen Umsatzanteil bei jeder Sally-Transaktion — Wiederverkauf, Reparatur und Recycling — und machen After-Sale zum aktiven Vertriebskanal.",
+  rv_txn_t:"Letzte Transaktionen",
+  rv_k1:"Transaktionen · diesen Monat",rv_k1s:"über alle Ströme",rv_k2:"Ihr Umsatzanteil",rv_k2s:"diesen Monat zurückgegeben",rv_k3:"Ø Artikel im Kreislauf",rv_k3s:"pro 100 verkauft",
+  th_date:"Datum",th_item:"Artikel",th_type:"Typ",th_value:"Wert",th_share:"Ihr Anteil",
+  st_title:"Einstellungen",st_sub:"Ihre Pilot-Konfiguration. Offene Standards, kein Vendor-Lock-in.",
+  set_plan:"Tarif",set_plan_v:"Pilot — Monatsabo",set_std:"Datenstandard",set_export:"Datenexport",set_export_v:"Vollständiger Export, jederzeit",set_carrier:"Datenträger",set_carrier_v:"QR · NFC-bereit",set_api:"ERP / E-Commerce",set_api_v:"Per Massenimport verbunden",
+  cs_eyebrow:"In der Hand der Kundschaft",cs_intro_t:"Ein Scan öffnet die ganze Geschichte.",
+  cs_intro_p:"Das sieht die Kundschaft nach dem Scannen des QR auf dem Pflegeetikett — ein geprüfter, lebendiger Pass, kein statisches PDF.",
+  cs_scan_hint:"Scan aus dem Katalog simuliert",
+  pp_verified:"Geprüfter digitaler Produktpass",
+  q_origin:"Herkunft",q_recycled:"Recycelt",q_life:"Lebensdauer",q_co2:"Footprint",
+  pp_materials:"Materialien & Zusammensetzung",pp_origin:"Herkunft & Weg",pp_care:"Pflege & Reparatur",
+  pp_dura:"Haltbarkeit & Zirkularität",pp_foot:"Umwelt-Footprint",pp_life:"Lebenszyklus",pp_comp:"Konformität & Identifikation",
+  f_recycled:"Recycling-Anteil",f_substances:"Besorgniserregende Stoffe",subst_none:"Keine angegeben",
+  f_madein:"Konfektioniert in",f_fibre:"Faserherkunft",f_facility:"Werk",f_manuf:"Hersteller",
+  f_dura:"Haltbarkeit",f_repair:"Reparierbarkeit",f_recyc:"Recyclingfähigkeit",f_lifetime:"Erwartete Lebensdauer",f_years:"Jahre",
+  f_co2:"CO₂-Footprint",f_water:"Wasserverbrauch",f_warranty:"Garantie",f_certs:"Zertifizierungen",
+  f_gtin:"GTIN",f_model:"Modell-ID",f_batch:"Chargen-ID",f_hs:"HS-Code",f_espr:"ESPR-Kategorie",f_conf:"Konformität",conf_self:"Konformitäts-Selbsterklärung",
+  care_cold:"Kalt waschen, 30°C",care_notumble:"Nicht im Trockner trocknen",care_flat:"In Form bringen, liegend trocknen",care_repair:"Reparieren statt ersetzen",care_nobleach:"Nicht bleichen",
+  cta_sally:"Was kommt als Nächstes für dieses Stück?",cta_sally_b:"Sally fragen",
+  living_note:"Dieser Pass aktualisiert sich, wenn das Stück repariert, weiterverkauft oder recycelt wird.",
+  mrz_lab:"Maschinenlesbare Passzone",
+  sl_eyebrow:"Der Unterschied",sl_intro_t:"Wo Konformität zirkulär wird.",
+  sl_intro_p:"Sally liest den Pass, beurteilt den Zustand des Stücks und zeigt den besten nächsten Schritt — hält das Stück im Kreislauf und gibt der Marke Wert zurück.",
+  sl_back:"Pass",sl_role:"Kreislauf-Assistentin",
+  sl_greet:"Ich habe deinen <b>{name}</b> von MERIDIA geprüft. Gute Nachricht — er ist in ausgezeichnetem Zustand und sehr gut weiterverkäuflich. Hier der klügste nächste Schritt.",
+  sl_cond:"Zustand",sl_cond_v:"Ausgezeichnet",sl_resell_pot:"Wiederverkaufs-Potenzial",sl_resell_v:"Hoch",
+  a_resell_t:"Weiterverkaufen",a_resell_d:"Starke Nachfrage nach diesem Stil. Mit zwei Taps einstellen — MERIDIA bestätigt per Pass die Echtheit.",
+  a_resell_go:"Zum Verkauf einstellen",a_best:"Bester Schritt",
+  a_repair_t:"Reparieren",a_repair_d:"Eine kleine Reparatur bringt Jahre. Buche einen geprüften Reparaturpartner in der Nähe.",a_repair_go:"Reparaturpartner finden",
+  a_recycle_t:"Recyceln",a_recycle_d:"Am echten Lebensende zur Faserrückgewinnung einsenden — kostenlos, und es senkt MERIDIAs EPR-Kosten.",a_recycle_go:"Verantwortungsvoll recyceln",
+  m_value:"Gesch. Wiederverkaufswert",m_share:"MERIDIA erhält",m_cost:"Ab",m_time:"Dauer",m_recover:"Faser zurückgewonnen",m_credit:"EPR-Gutschrift",
+  brand_share:"Jede Aktion hält das Stück im Kreislauf — und ein <b>Anteil geht an MERIDIA</b> zurück. Zirkularität, die sich rechnet.",
+  sg_q1:"Lohnt sich der Wiederverkauf wirklich?",sg_q2:"Wie recycle ich es?",sg_q3:"Woraus besteht es?",
+  sg_a1:"Ja — dieser Stil wird zu rund 60% des Verkaufspreises weiterverkauft, die Nachfrage ist hoch. Üblicherweise innerhalb einer Woche verkauft.",
+  sg_a2:"Drucke ein kostenloses, vorfrankiertes Etikett, gib es an einer Partnerstelle ab, und die Fasern werden zu neuem Garn. MERIDIA erhält dafür eine EPR-Gutschrift.",
+  sg_a3:"70% Baby-Alpaka und 30% RWS-Merino — keine besorgniserregenden Stoffe, voll rückverfolgbar von Peru bis Portugal. Alles steht im Pass.",
+  toast_resell:"Zum Verkauf eingestellt · MERIDIA erhält 8%",
+  toast_repair:"Reparaturpartner in der Nähe gefunden",
+  toast_recycle:"Recycling-Etikett gesendet · EPR-Gutschrift erfasst",
+  toast_gen:"42 Pässe & QR-Codes in 3m 48s ausgegeben",
+  toast_view:"Pass geöffnet — das ist die Ansicht Ihrer Kundschaft",
+ }
+};
+let LANG='en';
+function t(k){return (T[LANG]&&T[LANG][k])||T.en[k]||k;}
+
+/* ---------- product data ---------- */
+const PRODUCTS=[
+ {id:'alpaca',hero:'',cat:'knit',glyph:'sweater',name:'Andean Alpaca Crew',
+  sku:'MRD-AW26-ALP-01',gtin:'4007630001167',model:'ALP-CREW-V3',batch:'AW26-PT-0142',hs:'6110 11',espr:'TEX / 6110',
+  status:'pub',price:245,resale:148,share:8,
+  comp:[['mat_alpaca',70],['mat_merino',30]],recycled:0,
+  madein:'Porto, Portugal',fibre:'Arequipa, Peru',facility:'Malhas Atlântico, Porto',manuf:'MERIDIA Studio GmbH',gln:'4399901234561',
+  co2:'8.4 kg CO₂e',water:'410 L',dura:88,repair:82,recyc:74,life:12,
+  certs:['RWS','OEKO-TEX 100','GRS blend'],care:['care_cold','care_notumble','care_flat','care_repair'],warranty:'2y',
+  tl:[['tl_made','Porto, PT','2026-01-14'],['tl_qc','Porto, PT','2026-01-22'],['tl_sold','Milan, IT','2026-03-09'],['tl_reg','—','2026-03-11'],['tl_resold','—','2027 →',1]]},
+ {id:'tee',cat:'jersey',glyph:'tee',name:'Everyday Organic Tee',hero:'tee',
+  sku:'MRD-SS26-TEE-04',gtin:'4007630002041',model:'TEE-CLS-V2',batch:'SS26-PT-0310',hs:'6109 10',espr:'TEX / 6109',
+  status:'pub',price:42,resale:18,share:6,
+  comp:[['mat_cotton',100]],recycled:0,
+  madein:'Guimarães, Portugal',fibre:'İzmir, Türkiye (organic)',facility:'Algodão Verde Lda',manuf:'MERIDIA Studio GmbH',gln:'4399901234562',
+  co2:'2.1 kg CO₂e',water:'180 L',dura:71,repair:60,recyc:90,life:6,
+  certs:['GOTS','OEKO-TEX 100'],care:['care_cold','care_nobleach','care_repair'],warranty:'1y',
+  tl:[['tl_made','Guimarães, PT','2026-02-02'],['tl_qc','Guimarães, PT','2026-02-08'],['tl_sold','Cologne, DE','2026-04-01'],['tl_reg','—','2026-04-02']]},
+ {id:'jacket',cat:'outerwear',glyph:'jacket',name:'Recycled Shell Jacket',hero:'jacket',
+  sku:'MRD-AW26-SHL-02',gtin:'4007630003116',model:'SHL-WP-V1',batch:'AW26-VN-0077',hs:'6201 40',espr:'TEX / 6201',
+  status:'pub',price:320,resale:170,share:9,
+  comp:[['mat_rpoly',88],['mat_elastane',12]],recycled:88,
+  madein:'Da Nang, Vietnam',fibre:'Recycled PET (rPET)',facility:'GreenShell Mfg.',manuf:'MERIDIA Studio GmbH',gln:'4399901234563',
+  co2:'11.2 kg CO₂e',water:'95 L',dura:90,repair:78,recyc:68,life:10,
+  certs:['GRS','bluesign','PFC-free'],care:['care_cold','care_notumble','care_repair'],warranty:'3y',
+  tl:[['tl_made','Da Nang, VN','2026-01-30'],['tl_qc','Da Nang, VN','2026-02-12'],['tl_sold','Amsterdam, NL','2026-04-18'],['tl_reg','—','2026-04-20']]},
+ {id:'beanie',cat:'accessory',glyph:'beanie',name:'Merino Rib Beanie',hero:'beanie',
+  sku:'MRD-AW26-BNE-07',gtin:'4007630004014',model:'BNE-RIB-V1',batch:'AW26-PT-0512',hs:'6505 00',espr:'TEX / 6505',
+  status:'draft',price:55,resale:24,share:7,
+  comp:[['mat_merino',100]],recycled:0,
+  madein:'Porto, Portugal',fibre:'New South Wales, AU',facility:'Malhas Atlântico, Porto',manuf:'MERIDIA Studio GmbH',gln:'4399901234564',
+  co2:'3.0 kg CO₂e',water:'120 L',dura:80,repair:55,recyc:80,life:8,
+  certs:['RWS','OEKO-TEX 100'],care:['care_cold','care_notumble','care_flat'],warranty:'1y',
+  tl:[['tl_made','Porto, PT','2026-02-20'],['tl_qc','Porto, PT','2026-02-26']]},
+ {id:'tote',cat:'accessory',glyph:'tote',name:'Recycled Canvas Tote',hero:'tote',
+  sku:'MRD-SS26-TOT-03',gtin:'4007630005011',model:'TOT-CNV-V2',batch:'SS26-IN-0188',hs:'4202 22',espr:'TEX / 4202',
+  status:'pub',price:38,resale:14,share:6,
+  comp:[['mat_rcotton',100]],recycled:100,
+  madein:'Tiruppur, India',fibre:'Recycled cotton',facility:'ReWeave Pvt Ltd',manuf:'MERIDIA Studio GmbH',gln:'4399901234565',
+  co2:'1.4 kg CO₂e',water:'60 L',dura:75,repair:65,recyc:95,life:9,
+  certs:['GRS','OEKO-TEX 100'],care:['care_cold','care_nobleach'],warranty:'1y',
+  tl:[['tl_made','Tiruppur, IN','2026-02-10'],['tl_qc','Tiruppur, IN','2026-02-16'],['tl_sold','Paris, FR','2026-04-05'],['tl_reg','—','2026-04-06']]}
+];
+const MAT={mat_alpaca:{en:'Baby Alpaca',it:'Baby Alpaca',de:'Baby-Alpaka'},
+ mat_merino:{en:'RWS Merino wool',it:'Lana Merino RWS',de:'RWS-Merinowolle'},
+ mat_cotton:{en:'Organic cotton (GOTS)',it:'Cotone bio (GOTS)',de:'Bio-Baumwolle (GOTS)'},
+ mat_rpoly:{en:'Recycled polyester',it:'Poliestere riciclato',de:'Recyceltes Polyester'},
+ mat_elastane:{en:'Elastane',it:'Elastan',de:'Elasthan'},
+ mat_rcotton:{en:'Recycled cotton',it:'Cotone riciclato',de:'Recycelte Baumwolle'}};
+const TLEV={tl_made:{en:'Manufactured',it:'Prodotto',de:'Hergestellt'},
+ tl_qc:{en:'Quality check passed',it:'Controllo qualità superato',de:'Qualitätsprüfung bestanden'},
+ tl_shipped:{en:'Shipped',it:'Spedito',de:'Versendet'},
+ tl_sold:{en:'First sold',it:'Prima vendita',de:'Erstverkauf'},
+ tl_reg:{en:'Owner registered passport',it:'Proprietario ha registrato il passaporto',de:'Eigentümer hat Pass registriert'},
+ tl_resold:{en:'Next: resale, repair or recycle',it:'Prossimo: rivendita, riparazione o riciclo',de:'Als Nächstes: Weiterverkauf, Reparatur oder Recycling'}};
+function matName(k){return (MAT[k]&&MAT[k][LANG])||MAT[k]?.en||k;}
+function tlName(k){return (TLEV[k]&&TLEV[k][LANG])||TLEV[k]?.en||k;}
+function product(id){return PRODUCTS.find(p=>p.id===id);}
+
+/* ---------- state ---------- */
+let currentProduct='alpaca';
+
+/* ---------- i18n apply ---------- */
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.getAttribute('data-i18n'));});
+  document.documentElement.lang=LANG;
+  renderKPIs();renderStreams();renderDonut();renderActivity();
+  renderCatalogue();renderRevenue();renderSettings();
+  renderPassport();renderSally();
+  bindOverviewActions();
+}
+
+/* ---------- overview ---------- */
+function renderKPIs(){
+  const ic={
+   p:'<svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M9 8h7M9 12h7M9 16h4"/></svg>',
+   r:'<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>',
+   c:'<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M21 4v5h-5"/></svg>',
+   m:'<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M21 7v5h-5"/></svg>'};
+  document.getElementById('kpis').innerHTML=`
+   ${kpi(ic.p,'212',t('kpi_passports'),t('kpi_passports_sub'),'')}
+   ${kpi(ic.r,'92%',t('kpi_ready'),t('kpi_ready_sub'),'')}
+   ${kpi(ic.c,'1,940',t('kpi_circ'),t('kpi_circ_sub'),'up')}
+   ${kpi(ic.m,'€6,820',t('kpi_rev'),t('kpi_rev_sub'),'up',true,'revenue')}`;
+}
+function kpi(icon,val,lab,sub,cls,clickable=false,panel=''){
+  const attrs=clickable?`class="kpi kpi-clickable" role="button" tabindex="0" data-panel="${panel}"`:`class="kpi"`;
+  return `<div ${attrs}><div class="lab"><span class="ic">${icon}</span>${lab}</div>
+   <div class="val">${val}</div><div class="sub ${cls}">${sub}</div></div>`;
+}
+function bindOverviewActions(){
+  document.querySelectorAll('.kpi-clickable').forEach(card=>{
+    card.addEventListener('click',()=>activatePanel(card.dataset.panel));
+    card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activatePanel(card.dataset.panel);}});
+  });
+}
+function activatePanel(panel){
+  document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('is-active',n.dataset.panel===panel));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('is-active'));
+  const target=document.getElementById('panel-'+panel);
+  if(target)target.classList.add('is-active');
+}
+function renderStreams(){
+  const data=[[t('st_resell'),'var(--teal)',62,'€4,210'],[t('st_repair'),'#c8922a',24,'€1,640'],[t('st_recycle'),'var(--loop)',14,'€970']];
+  document.getElementById('streams').innerHTML=data.map(d=>`
+   <div class="stream"><span class="nm"><i style="background:${d[1]}"></i>${d[0]}</span>
+   <span class="bar"><span style="width:${d[2]}%;background:${d[1]}"></span></span>
+   <span class="amt">${d[3]}</span></div>`).join('');
+}
+function renderDonut(){
+  document.getElementById('donut').innerHTML=`
+   <svg viewBox="0 0 132 132" width="132" height="132">
+    <circle cx="66" cy="66" r="52" fill="none" stroke="#e7eaee" stroke-width="13"/>
+    <circle cx="66" cy="66" r="52" fill="none" stroke="var(--teal)" stroke-width="13" stroke-linecap="round"
+     stroke-dasharray="${2*Math.PI*52}" stroke-dashoffset="${2*Math.PI*52*0.08}" transform="rotate(-90 66 66)"/>
+   </svg><div class="ctr"><b>92%</b><span>ESPR</span></div>`;
+  const rows=[[t('ready_done'),1],[t('ready_done2'),1],[t('ready_done3'),1],[t('ready_pend'),0]];
+  document.getElementById('readyList').innerHTML=rows.map(r=>`
+   <div class="ready-row ${r[1]?'':'pend'}"><span class="tick">
+   ${r[1]?'<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>':'<svg viewBox="0 0 24 24" style="stroke:#c8922a"><path d="M12 8v5M12 16h.01"/></svg>'}
+   </span>${r[0]} <span style="margin-left:auto;color:#94a0ad;font-size:11px">${r[1]?t('ready_done_n'):t('ready_pend_n')}</span></div>`).join('');
+}
+function renderActivity(){
+  const acts=[
+   ['loop','<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M21 4v5h-5"/></svg>',t('act_resell'),t('act_resell_d'),'+€137','€11'],
+   ['','<svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M9 12h7M9 16h4"/></svg>',t('act_passport'),t('act_passport_d'),'',''],
+   ['','<svg viewBox="0 0 24 24"><path d="M14 4l6 6M3 21l3-1 11-11-2-2L4 18z"/></svg>',t('act_repair'),t('act_repair_d'),'+€18','€2'],
+   ['loop','<svg viewBox="0 0 24 24"><path d="M7 19l-3-5 3-5M21 14l-3 5h-7M3 14h11l3-5"/></svg>',t('act_recycle'),t('act_recycle_d'),'EPR',''],
+  ];
+  document.getElementById('activity').innerHTML=acts.map(a=>`
+   <div class="act"><span class="ad ${a[0]}">${a[1]}</span>
+    <div><b>${a[2]}</b><div class="at">${a[3]}</div></div>
+    <div class="right">${a[4]?`<b style="font-family:var(--mono);font-size:13px;color:${a[0]?'var(--loop)':'var(--ink)'}">${a[4]}</b>`:''}
+    ${a[5]?`<div class="at">${a[5]}</div>`:''}</div></div>`).join('');
+}
+
+/* ---------- catalogue ---------- */
+const HEROCLASS={alpaca:'',tee:'tee',jacket:'jacket',beanie:'beanie',tote:'tote'};
+function renderCatalogue(){
+  document.getElementById('catGrid').innerHTML=PRODUCTS.map(p=>`
+   <div class="product">
+    <span class="badge-status ${p.status==='pub'?'':'draft'}"><span class="d"></span>${p.status==='pub'?(LANG==='it'?'Pubblicato':LANG==='de'?'Veröffentlicht':'Published'):(LANG==='it'?'Bozza':LANG==='de'?'Entwurf':'Draft')}</span>
+    <div class="ph" style="height:240px;padding:0;display:grid;place-items:center">
+      <img class="gl" src="images/${p.id}.png" alt="${p.name}" onerror="this.onerror=null;this.src='images/organic_tee.png';">
+    </div>
+    <div class="pb">
+      <span class="cat">${catName(p.cat)}</span>
+      <span class="nm">${p.name}</span>
+      <span class="sku mono">${p.sku}</span>
+      <div class="row"><span class="fp"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"/></svg>${p.co2}</span>
+       <span style="margin-left:auto" class="fp"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M21 4v5h-5"/></svg>${p.recyc}%</span></div>
+      <button class="view" data-view="${p.id}">${t('view_passport')}
+        <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 11h10M7 14h6"/></svg></button>
+    </div></div>`).join('');
+}
+function catName(c){
+  const m={knit:{en:'Knitwear',it:'Maglieria',de:'Strickware'},jersey:{en:'Jersey',it:'Jersey',de:'Jersey'},
+   outerwear:{en:'Outerwear',it:'Capospalla',de:'Oberbekleidung'},accessory:{en:'Accessory',it:'Accessorio',de:'Accessoire'}};
+  return (m[c]&&m[c][LANG])||c;
+}
+
+/* ---------- revenue ---------- */
+function renderRevenue(){
+  document.getElementById('rvKpis').innerHTML=`
+   ${kpi('<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M21 7v5h-5"/></svg>','318',t('rv_k1'),t('rv_k1s'),'up')}
+   ${kpi('<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 10h4a2 2 0 0 1 0 4H9"/></svg>','€6,820',t('rv_k2'),t('rv_k2s'),'up')}
+   ${kpi('<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M21 4v5h-5"/></svg>','31',t('rv_k3'),t('rv_k3s'),'up')}`;
+  const rows=[
+   ['09 Jun','Andean Alpaca Crew','resell',t('st_resell'),'€148','€11.84'],
+   ['08 Jun','Recycled Shell Jacket','repair',t('st_repair'),'€34','€3.06'],
+   ['06 Jun','Everyday Organic Tee','recycle',t('st_recycle'),'EPR','€0.40'],
+   ['05 Jun','Merino Rib Beanie','resell',t('st_resell'),'€24','€1.68'],
+   ['03 Jun','Recycled Canvas Tote','resell',t('st_resell'),'€14','€0.84'],
+  ];
+  document.getElementById('txnTbl').innerHTML=`
+   <thead><tr><th>${t('th_date')}</th><th>${t('th_item')}</th><th>${t('th_type')}</th><th>${t('th_value')}</th><th>${t('th_share')}</th></tr></thead>
+   <tbody>${rows.map(r=>`<tr><td class="m">${r[0]}</td><td>${r[1]}</td>
+    <td><span class="tag ${r[2]}">${r[3]}</span></td><td class="m">${r[4]}</td><td class="m" style="color:var(--loop)">${r[5]}</td></tr>`).join('')}</tbody>`;
+}
+
+/* ---------- settings ---------- */
+function renderSettings(){
+  const rows=[[t('set_plan'),t('set_plan_v')],[t('set_std'),'CIRPASS / ESPR'],[t('set_carrier'),t('set_carrier_v')],
+   [t('set_api'),t('set_api_v')],[t('set_export'),t('set_export_v')]];
+  document.getElementById('setCard').innerHTML=rows.map(r=>`<div class="set-row"><span class="k">${r[0]}</span><span class="v">${r[1]}</span></div>`).join('');
+}
+
+/* ---------- consumer passport ---------- */
+function renderPassport(){
+  const p=product(currentProduct);
+  const comp=p.comp.map(c=>`<div class="comp-row"><div class="top"><b>${matName(c[0])}</b><span>${c[1]}%</span></div>
+    <div class="comp-bar"><span style="width:${c[1]}%"></span></div></div>`).join('');
+  const certs=p.certs.map(c=>`<span class="chip"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>${c}</span>`).join('');
+  const care=p.care.map(c=>`<span class="chip">${t(c)}</span>`).join('');
+  const scoreRing=(v,c,lab)=>`<div class="score"><div class="ring">${ringSVG(v,c)}<b>${v}</b></div><div class="lab">${lab}</div></div>`;
+  const journey=p.tl.map(e=>`<div class="jstep ${e[3]?'future loop':''}">
+     <span class="jd"></span><div class="jt"><b>${tlName(e[0])}</b><span>${e[1]!=='—'?e[1]+' · ':''}</span><span class="dt">${e[2]}</span></div></div>`).join('');
+  const mrz=mrzText(p);
+  const heroCls=HEROCLASS[p.id];
+  document.getElementById('ppScroll').innerHTML=`
+   <div class="pp-hero ${heroCls}">
+     <span class="pp-verified"><svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>${t('pp_verified')}</span>
+     <div class="brand">MERIDIA</div>
+     <h1>${p.name}</h1>
+     <div class="pcat">${catName(p.cat)}</div>
+     <img class="hero-image" src="images/${p.id}.png" alt="${p.name}" onerror="this.onerror=null;this.src='images/organic_tee.png';">
+   </div>
+   <div class="pp-quick">
+     <div class="q"><b>${p.fibre.split(',').pop().trim()}</b><span>${t('q_origin')}</span></div>
+     <div class="q"><b>${p.recycled}<small>%</small></b><span>${t('q_recycled')}</span></div>
+     <div class="q"><b>${p.life}<small>${LANG==='de'?'J':LANG==='it'?'a':'y'}</small></b><span>${t('q_life')}</span></div>
+     <div class="q"><b>${p.co2.split(' ')[0]}<small>kg</small></b><span>${t('q_co2')}</span></div>
+   </div>
+   <div class="pp-body">
+     <div class="pp-sec"><h3><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>${t('pp_materials')}</h3>
+       <div class="comp">${comp}</div>
+       <div class="kv" style="margin-top:8px"><span class="k">${t('f_recycled')}</span><span class="v">${p.recycled}%</span></div>
+       <div class="kv"><span class="k">${t('f_substances')}</span><span class="v"><span class="chip ok"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>${t('subst_none')}</span></span></div>
+     </div>
+     <div class="pp-sec"><h3><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>${t('pp_origin')}</h3>
+       <div class="kv"><span class="k">${t('f_fibre')}</span><span class="v">${p.fibre}</span></div>
+       <div class="kv"><span class="k">${t('f_madein')}</span><span class="v">${p.madein}</span></div>
+       <div class="kv"><span class="k">${t('f_facility')}</span><span class="v">${p.facility}</span></div>
+     </div>
+     <div class="pp-sec"><h3><svg viewBox="0 0 24 24"><path d="M14 4l6 6M3 21l3-1 11-11-2-2L4 18z"/></svg>${t('pp_care')}</h3>
+       <div class="chips">${care}</div>
+       <div class="kv" style="margin-top:10px"><span class="k">${t('f_warranty')}</span><span class="v">${p.warranty.replace('y',LANG==='de'?' Jahre':LANG==='it'?' anni':' yr')}</span></div>
+     </div>
+     <div class="pp-sec"><h3><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M21 4v5h-5"/></svg>${t('pp_dura')}</h3>
+       <div class="scores">
+         ${scoreRing(p.dura,'var(--teal)',t('f_dura'))}
+         ${scoreRing(p.repair,'var(--slate)',t('f_repair'))}
+         ${scoreRing(p.recyc,'var(--loop)',t('f_recyc'))}
+       </div>
+       <div class="kv" style="margin-top:12px"><span class="k">${t('f_lifetime')}</span><span class="v">${p.life} ${t('f_years')}</span></div>
+     </div>
+     <div class="pp-sec"><h3><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"/></svg>${t('pp_foot')}</h3>
+       <div class="kv"><span class="k">${t('f_co2')}</span><span class="v">${p.co2}</span></div>
+       <div class="kv"><span class="k">${t('f_water')}</span><span class="v">${p.water}</span></div>
+     </div>
+     <div class="pp-sec"><h3><svg viewBox="0 0 24 24"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>${t('pp_life')}</h3>
+       <div class="journey">${journey}</div>
+     </div>
+     <div class="pp-sec"><h3><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>${t('pp_comp')}</h3>
+       <div class="kv"><span class="k">${t('f_gtin')}</span><span class="v m">${p.gtin}</span></div>
+       <div class="kv"><span class="k">${t('f_model')}</span><span class="v m">${p.model}</span></div>
+       <div class="kv"><span class="k">${t('f_batch')}</span><span class="v m">${p.batch}</span></div>
+       <div class="kv"><span class="k">${t('f_hs')}</span><span class="v m">${p.hs}</span></div>
+       <div class="kv"><span class="k">${t('f_espr')}</span><span class="v m">${p.espr}</span></div>
+       <div class="kv"><span class="k">${t('f_manuf')}</span><span class="v">${p.manuf}</span></div>
+       <div class="kv"><span class="k">${t('f_conf')}</span><span class="v">${t('conf_self')}</span></div>
+       <div class="kv"><span class="k">${t('f_certs')}</span><span class="v" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end">${certs}</span></div>
+     </div>
+   </div>
+   <div class="mrz"><div class="mrz-lab">${t('mrz_lab')}</div><pre>${mrz}</pre></div>
+   <div class="pp-cta">
+     <button class="ask" id="askSally"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+       <span class="ask-text">${t('cta_sally')} · <span class="ask-link">${t('cta_sally_b')}</span></span></button>
+     <div class="note"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M21 4v5h-5"/></svg>${t('living_note')}</div>
+   </div>`;
+  document.getElementById('askSally').addEventListener('click',()=>setSurface('sally'));
+}
+function mrzText(p){
+  const pad=(s,n)=>(s+'<'.repeat(n)).slice(0,n);
+  const nm=p.name.toUpperCase().replace(/[^A-Z0-9]/g,'<');
+  const l1=pad('DPP<MERIDIA<'+nm,44);
+  const l2=pad(p.gtin+'<'+p.batch.replace(/[^A-Z0-9]/g,'')+'<'+p.espr.replace(/[^A-Z0-9]/g,'<'),44);
+  return (l1+'\n'+l2).replace(/</g,'&lt;');
+}
+
+/* ---------- Sally ---------- */
+function renderSally(){
+  const p=product(currentProduct);
+  document.getElementById('sallyAv').textContent='S';
+  const greet=t('sl_greet').replace('{name}',p.name);
+  const featured = p.recyc>=90 ? 'recycle' : 'resell'; // tote/tee lean recycle, others resell
+  function card(type){
+    const conf={
+     resell:{ic:'resell',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 10h4a2 2 0 0 1 0 4H9"/></svg>',
+       t:t('a_resell_t'),d:t('a_resell_d'),go:t('a_resell_go'),
+       meta:[[t('m_value'),'€'+p.resale,''],[t('m_share'),p.share+'%','loop']],toast:'toast_resell',cls:'p'},
+     repair:{ic:'repair',svg:'<svg viewBox="0 0 24 24"><path d="M14 4l6 6M3 21l3-1 11-11-2-2L4 18z"/></svg>',
+       t:t('a_repair_t'),d:t('a_repair_d'),go:t('a_repair_go'),
+       meta:[[t('m_cost'),'€18',''],[t('m_time'),'3–5'+(LANG==='de'?'T':LANG==='it'?'g':'d'),'']],toast:'toast_repair',cls:'s'},
+     recycle:{ic:'recycle',svg:'<svg viewBox="0 0 24 24"><path d="M7 19l-3-5 3-5M21 14l-3 5h-7M3 14h11l3-5"/></svg>',
+       t:t('a_recycle_t'),d:t('a_recycle_d'),go:t('a_recycle_go'),
+       meta:[[t('m_recover'),'94%','loop'],[t('m_credit'),'EPR','']],toast:'toast_recycle',cls:'s'}
+    }[type];
+    const isFeat=type===featured;
+    const confCls = isFeat ? 'p' : conf.cls;
+    return `<div class="act-card ${isFeat?'featured':''}">
+      <div class="ah"><span class="ai ${conf.ic}">${conf.svg}</span>
+        <div class="at-wrap"><b>${conf.t}</b><span>${catName(p.cat)} · ${p.name}</span></div>
+        ${isFeat?`<span class="best">${t('a_best')}</span>`:''}</div>
+      <p>${conf.d}</p>
+      <div class="meta">${conf.meta.map(m=>`<div>${m[0]}<b class="${m[2]}">${m[1]}</b></div>`).join('')}</div>
+      <button class="go ${confCls}" data-act="${conf.toast}">${conf.go}
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>`;
+  }
+  const order = featured==='recycle' ? ['recycle','resell','repair'] : ['resell','repair','recycle'];
+  document.getElementById('sallyBody').innerHTML=`
+    <div class="msg">${greet}</div>
+    <div class="assess">
+      <div class="a"><span>${t('sl_cond')}</span><b><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>${t('sl_cond_v')}</b></div>
+      <div class="a"><span>${t('sl_resell_pot')}</span><b><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>${t('sl_resell_v')}</b></div>
+    </div>
+    ${order.map(card).join('')}
+    <div class="brand-share"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M21 4v5h-5"/></svg><p>${t('brand_share')}</p></div>
+    <div class="suggest">
+      <button data-ans="sg_a1">${t('sg_q1')}</button>
+      <button data-ans="sg_a2">${t('sg_q2')}</button>
+      <button data-ans="sg_a3">${t('sg_q3')}</button>
+    </div>`;
+  // wire actions
+  document.querySelectorAll('#sallyBody .go').forEach(b=>b.addEventListener('click',()=>toast(t(b.dataset.act))));
+  document.querySelectorAll('#sallyBody .suggest button').forEach(b=>b.addEventListener('click',()=>{
+    const body=document.getElementById('sallyBody');
+    const q=document.createElement('div');q.className='msg';q.style.cssText='margin-left:auto;background:var(--ink);color:#fff;border-radius:16px 4px 16px 16px';
+    q.textContent=b.textContent;
+    const a=document.createElement('div');a.className='msg';a.innerHTML=t(b.dataset.ans);
+    body.appendChild(q);body.appendChild(a);body.scrollTop=body.scrollHeight;
+  }));
+}
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast');
+  document.getElementById('toastMsg').innerHTML='<b>'+msg+'</b>';
+  el.classList.add('show');clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+/* ---------- surface + panel switching ---------- */
+function setSurface(name){
+  document.querySelectorAll('.surface').forEach(s=>s.classList.remove('is-active'));
+  document.getElementById('surface-'+name).classList.add('is-active');
+  document.querySelectorAll('.switcher button').forEach(b=>b.classList.toggle('is-active',b.dataset.surface===name));
+  window.scrollTo({top:0,behavior:'auto'});
+}
+document.querySelectorAll('.switcher button').forEach(b=>b.addEventListener('click',()=>setSurface(b.dataset.surface)));
+document.querySelectorAll('.navitem').forEach(b=>b.addEventListener('click',()=>activatePanel(b.dataset.panel)));
+// catalogue -> passport (the connected flow)
+document.getElementById('catGrid').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-view]');if(!btn)return;
+  currentProduct=btn.dataset.view;renderPassport();renderSally();
+  setSurface('consumer');toast(t('toast_view'));
+});
+document.getElementById('sallyBack').addEventListener('click',()=>setSurface('consumer'));
+
+// lang
+document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>{
+  LANG=b.dataset.lang;
+  document.querySelectorAll('.lang button').forEach(x=>x.classList.toggle('is-active',x===b));
+  applyI18n();
+}));
+
+// create flow simulation
+document.getElementById('genBtn').addEventListener('click',()=>{
+  const prog=document.getElementById('genProg'),bar=prog.querySelector('span'),log=document.getElementById('genLog');
+  prog.classList.add('show');bar.style.width='0';let pc=0;
+  const msgs=['importing 42 products…','calculating footprints…','generating passports…','issuing QR codes…','done'];
+  const i=setInterval(()=>{pc+=Math.random()*16+8;if(pc>=100){pc=100;clearInterval(i);log.textContent='✓ '+t('toast_gen');toast(t('toast_gen'));}
+    bar.style.width=pc+'%';log.textContent='› '+msgs[Math.min(msgs.length-1,Math.floor(pc/20))];},360);
+});
+
+/* ---------- init decorative SVG ---------- */
+document.getElementById('genWeave').innerHTML=weaveBlock();
+document.getElementById('cWeave').innerHTML=weaveBlock();
+document.getElementById('sWeave').innerHTML=weaveBlock();
+applyI18n();
+</script>
+</body>
+</html>
